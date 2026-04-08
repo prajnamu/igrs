@@ -526,68 +526,69 @@
         el.syncText.textContent = 'Sinkronisasi...';
 
         try {
-            /* 1. Ambil Halaman Pertama Tanpa Menebak Size */
-            const res0 = await fetch(API_BASE + '?page=0&sort=id,desc'); 
-            if (!res0.ok) throw new Error('HTTP ' + res0.status);
+            // 1. Ambil data pertama untuk memicu info halaman
+            const res0 = await fetch('https://api.igrs.id/public/games?page=0&size=20&sort=id,desc');
+            if (!res0.ok) throw new Error('Koneksi API Gagal');
             const data0 = await res0.json();
+
+            // AMBIL INFO HALAMAN SECARA TEGAS
+            let totalPages = 0;
+            if (data0.page) {
+                totalPages = data0.page.totalPages;
+            } else {
+                totalPages = 1; // Fallback jika gagal baca
+            }
             
-            // DINAMIS: Ambil info langsung dari server
-            const currentSize = data0.page?.size || 20;       
-            let totalPages = data0.page?.totalPages || 1;     
-            const totalElements = data0.page?.totalElements || 0; 
-            
-            console.log(`Menarik ${totalElements} game dari ${totalPages} halaman.`);
-            
-            // Masukkan data awal
+            const currentSize = data0.page?.size || 20;
+
+            console.log("DEBUG: Total Halaman ditemukan:", totalPages);
+
+            // Masukkan data halaman 0
             const items0 = data0._embedded?.publicGameResultList || [];
-            items0.forEach(g => { if (!seenIds.has(g.id)) { seenIds.add(g.id); allGames.push(g); } });
-            
-            // Update UI Awal
+            items0.forEach(g => { 
+                if (!seenIds.has(g.id)) { 
+                    seenIds.add(g.id); 
+                    allGames.push(g); 
+                } 
+            });
+
+            // Update UI awal
             el.total.textContent = allGames.length.toLocaleString('id-ID');
-            setProgress(1, totalPages);
-            
-            /* Fetch sisa halaman dalam batch paralel */
-            let fetchedCount = 1;
-            for (let start = 1; start < totalPages; start += BATCH_SIZE) {
-                const batch = [];
-                for (let p = start; p < Math.min(start + BATCH_SIZE, totalPages); p++) {
-                    batch.push(p);
+            // Pastikan elemen untuk "TOTAL HAL. API" juga diupdate di sini
+            // (Sesuaikan nama variabel elemennya, misal: el.totalHal)
+            if(el.totalHal) el.totalHal.textContent = totalPages; 
+
+            /* 2. AMBIL SISA HALAMAN (Pake Loop Biasa biar Stabil) */
+            if (totalPages > 1) {
+                for (let p = 1; p < totalPages; p++) {
+                    try {
+                        const res = await fetch(`https://api.igrs.id/public/games?page=${p}&size=${currentSize}&sort=id,desc`);
+                        const data = await res.json();
+                        const items = data._embedded?.publicGameResultList || [];
+                        
+                        items.forEach(g => {
+                            if (!seenIds.has(g.id)) { 
+                                seenIds.add(g.id); 
+                                allGames.push(g); 
+                            }
+                        });
+
+                        // Update tampilan tiap kali dapet data baru
+                        el.total.textContent = allGames.length.toLocaleString('id-ID');
+                        // Update angka "HAL. API DIMUAT"
+                        if(el.halDimuat) el.halDimuat.textContent = (p + 1);
+                        
+                        setProgress(p + 1, totalPages);
+                    } catch (err) {
+                        console.error("Gagal di halaman " + p);
+                    }
                 }
-
-                const results = await Promise.allSettled(
-                    batch.map(p =>
-                        fetch(API_BASE + '?page=' + p + '&size=' + currentSize + '&sort=id,desc')
-                            .then(r => r.ok ? r.json() : null)
-                            .catch(() => null)
-                    )
-                );
-
-                results.forEach(r => {
-                    if (r.status !== 'fulfilled' || !r.value) return;
-                    const items = r.value._embedded?.publicGameResultList || [];
-                    /* FIX: deduplikasi — game yang sama tidak masuk dua kali */
-                    items.forEach(g => {
-                        if (!seenIds.has(g.id)) { seenIds.add(g.id); allGames.push(g); }
-                    });
-                    fetchedCount++;
-                    /* Update totalPages jika API melaporkan angka lebih besar */
-                    const tp = r.value.page?.totalPages;
-                    if (tp && tp > totalPages) totalPages = tp;
-                    el.total.textContent = allGames.length.toLocaleString('id-ID');
-                    setProgress(fetchedCount, totalPages);
-                });
-
-                applyFilters();
             }
 
+            // Selesai
             isSyncing = false;
             el.syncStatus.classList.remove('active');
             el.syncText.textContent = 'Data Sinkron ✓';
-            el.total.textContent = allGames.length.toLocaleString('id-ID');
-
-            setTimeout(() => { el.progressArea.style.opacity = '0'; }, 2000);
-            setTimeout(() => { el.progressArea.style.display  = 'none'; }, 2500);
-
             applyFilters();
 
         } catch (e) {
