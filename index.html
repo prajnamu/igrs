@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap" rel="stylesheet">
     <style>
+        /* PERBAIKAN SCOPE: Variabel sekarang berlaku untuk Kontainer DAN Modal Overlay */
         #igrs-app-container, #igrs-modal-overlay {
             --igrs-bg: #F7F5F0;
             --igrs-surface: #FFFFFF;
@@ -27,6 +28,7 @@
             --igrs-font-display: 'Fraunces', Georgia, serif;
             --igrs-font-body: 'DM Sans', sans-serif;
             --igrs-font-mono: 'DM Mono', monospace;
+            
             font-family: var(--igrs-font-body);
             color: var(--igrs-text);
             -webkit-font-smoothing: antialiased;
@@ -80,11 +82,10 @@
         }
 
         #igrs-app-container .sync-badge.active { color: var(--igrs-green); border-color: var(--igrs-green); }
-        #igrs-app-container .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
-        #igrs-app-container .sync-badge.active .dot { background: var(--igrs-green); animation: igrs-pulse 1.5s infinite; }
+        #igrs-app-container .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
+        #igrs-app-container .active .dot { background: var(--igrs-green); animation: igrs-pulse 1.5s infinite; }
 
         @keyframes igrs-pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
-        @keyframes igrs-spin { to { transform: rotate(360deg); } }
 
         #igrs-app-container .metrics-grid {
             display: grid;
@@ -123,7 +124,6 @@
             padding: 14px;
             border-radius: 12px;
             margin-bottom: 1.5rem;
-            transition: opacity 0.5s;
         }
 
         #igrs-app-container .progress-info {
@@ -165,7 +165,7 @@
         #igrs-app-container .search-box svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--igrs-text-faint); }
 
         #igrs-app-container .dropdown-group { display: flex; gap: 10px; flex-wrap: wrap; }
-
+        
         #igrs-app-container .sort-box select,
         #igrs-app-container .platform-box select {
             padding: 12px 14px;
@@ -176,6 +176,7 @@
             background: var(--igrs-bg);
             color: var(--igrs-text);
             cursor: pointer;
+            height: 100%;
         }
 
         #igrs-app-container .filter-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
@@ -191,14 +192,14 @@
             cursor: pointer;
             color: var(--igrs-text);
             transition: all 0.2s;
-            user-select: none;
         }
         #igrs-app-container .chip.active { background: var(--igrs-text); color: white; border-color: var(--igrs-text); }
 
-        #igrs-app-container .game-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 16px;
+        /* PERBAIKAN GRID KARTU - Memaksa Multikolom Minimal 240px */
+        #igrs-app-container .game-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
+            gap: 16px; 
             width: 100%;
         }
 
@@ -212,6 +213,7 @@
             gap: 12px;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+            height: 100%;
         }
 
         #igrs-app-container .game-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.06); border-color: var(--igrs-border-strong); }
@@ -226,25 +228,18 @@
             padding: 4px 10px;
             border-radius: 6px;
             white-space: nowrap;
-            flex-shrink: 0;
         }
 
-        /* FIX: Class rating pakai nama eksplisit, bukan substring match */
-        #igrs-app-container .r-3   { background: var(--igrs-green-bg); color: var(--igrs-green); }
-        #igrs-app-container .r-13  { background: var(--igrs-blue-bg);  color: var(--igrs-blue); }
-        #igrs-app-container .r-15  { background: var(--igrs-amber-bg); color: var(--igrs-amber); }
-        #igrs-app-container .r-18  { background: var(--igrs-red-bg);   color: var(--igrs-red); }
-        #igrs-app-container .r-ur  { background: #eee; color: #777; }
-
-        #igrs-modal-overlay .r-3   { background: var(--igrs-green-bg); color: var(--igrs-green); }
-        #igrs-modal-overlay .r-13  { background: var(--igrs-blue-bg);  color: var(--igrs-blue); }
-        #igrs-modal-overlay .r-15  { background: var(--igrs-amber-bg); color: var(--igrs-amber); }
-        #igrs-modal-overlay .r-18  { background: var(--igrs-red-bg);   color: var(--igrs-red); }
-        #igrs-modal-overlay .r-ur  { background: #eee; color: #777; }
+        #igrs-app-container .r-3 { background: var(--igrs-green-bg); color: var(--igrs-green); }
+        #igrs-app-container .r-13 { background: var(--igrs-blue-bg); color: var(--igrs-blue); }
+        #igrs-app-container .r-15 { background: var(--igrs-amber-bg); color: var(--igrs-amber); }
+        #igrs-app-container .r-18 { background: var(--igrs-red-bg); color: var(--igrs-red); }
+        #igrs-app-container .r-unrated { background: #eee; color: #777; }
 
         #igrs-app-container .publisher { font-size: 13px; color: var(--igrs-text-muted); margin-bottom: auto; }
         #igrs-app-container .platform-tag { font-size: 10px; background: #F0EEEA; padding: 4px 8px; border-radius: 4px; color: var(--igrs-text-muted); font-family: var(--igrs-font-mono); }
 
+        /* PERBAIKAN STYLING MODAL DETAIL */
         #igrs-modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -294,7 +289,9 @@
             background: var(--igrs-surface);
         }
 
-        #igrs-modal-overlay .modal-scroll-area { padding: 2rem 2.5rem 2.5rem; }
+        #igrs-modal-overlay .modal-scroll-area {
+            padding: 2rem 2.5rem 2.5rem;
+        }
 
         #igrs-modal-overlay .detail-section-label {
             font-family: var(--igrs-font-mono);
@@ -317,40 +314,29 @@
             border: 1px solid var(--igrs-border);
         }
 
-        #igrs-modal-overlay .rating-desc-box {
+        #igrs-modal-overlay .rating-desc-premium {
             background: var(--igrs-bg);
             padding: 1.5rem;
             border-radius: 12px;
             font-size: 14px;
+            border-left: 4px solid var(--igrs-amber); /* Warna default indikator rating */
             white-space: pre-line;
             color: var(--igrs-text);
             line-height: 1.6;
-            border: 1px solid var(--igrs-border);
-            border-left-width: 4px;
+            border-top: 1px solid var(--igrs-border);
+            border-right: 1px solid var(--igrs-border);
+            border-bottom: 1px solid var(--igrs-border);
         }
-        #igrs-modal-overlay .rating-desc-box.bor-3  { border-left-color: var(--igrs-green); }
-        #igrs-modal-overlay .rating-desc-box.bor-13 { border-left-color: var(--igrs-blue); }
-        #igrs-modal-overlay .rating-desc-box.bor-15 { border-left-color: var(--igrs-amber); }
-        #igrs-modal-overlay .rating-desc-box.bor-18 { border-left-color: var(--igrs-red); }
-        #igrs-modal-overlay .rating-desc-box.bor-ur { border-left-color: #ccc; }
+        #igrs-modal-overlay .rating-desc-premium.bor-3 { border-left-color: var(--igrs-green); }
+        #igrs-modal-overlay .rating-desc-premium.bor-13 { border-left-color: var(--igrs-blue); }
+        #igrs-modal-overlay .rating-desc-premium.bor-15 { border-left-color: var(--igrs-amber); }
+        #igrs-modal-overlay .rating-desc-premium.bor-18 { border-left-color: var(--igrs-red); }
 
         #igrs-app-container .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 2rem; }
         #igrs-app-container .page-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--igrs-border); background: var(--igrs-surface); font-size: 13px; font-family: var(--igrs-font-mono); cursor: pointer; color: var(--igrs-text); transition: all 0.2s; }
         #igrs-app-container .page-btn:hover:not(:disabled) { background: var(--igrs-bg); }
         #igrs-app-container .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         #igrs-app-container .page-info { font-size: 13px; font-family: var(--igrs-font-mono); color: var(--igrs-text-muted); }
-
-        #igrs-app-container .error-notice {
-            background: var(--igrs-red-bg);
-            border: 1px solid #FFBDBD;
-            border-radius: 12px;
-            padding: 1rem 1.25rem;
-            font-size: 13px;
-            font-family: var(--igrs-font-mono);
-            color: var(--igrs-red);
-            line-height: 1.7;
-            margin-bottom: 1rem;
-        }
 
         @media (max-width: 600px) {
             #igrs-app-container .game-grid { grid-template-columns: 1fr; }
@@ -359,17 +345,19 @@
             #igrs-modal-overlay .modal-header-bar { padding: 2rem 1.5rem 1.5rem; }
             #igrs-modal-overlay .modal-scroll-area { padding: 1.5rem; }
             #igrs-app-container .dropdown-group { flex-direction: column; width: 100%; }
-            #igrs-app-container .sort-box select,
-            #igrs-app-container .platform-box select { width: 100%; padding: 10px 14px; }
+            #igrs-app-container .sort-box select, #igrs-app-container .platform-box select { width: 100%; padding: 10px 14px; }
         }
     </style>
 </head>
-<body>
+<body class="modal-open">
 
-<div id="igrs-modal-overlay" onclick="igrsCloseDetail(event)">
+<!-- Modal Overlay sekarang berada di luar container, tapi di-cover oleh variabel CSS -->
+<div id="igrs-modal-overlay" onclick="closeDetail(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
-        <button class="close-modal" aria-label="Tutup" onclick="igrsCloseDetail()">✕</button>
-        <div id="igrs-modal-body" style="overflow-y:auto; flex:1; min-height:0; width:100%;"></div>
+        <button class="close-modal" aria-label="Tutup" onclick="closeDetail()">✕</button>
+        <div id="igrs-modal-body" style="overflow-y: auto; flex: 1; min-height: 0; width: 100%;">
+            <!-- Konten Modal via JS -->
+        </div>
     </div>
 </div>
 
@@ -388,29 +376,24 @@
     <div class="metrics-grid">
         <div class="metric-card"><label>Total Gim</label><div class="value" id="mTotal">0</div></div>
         <div class="metric-card"><label>Tersaring</label><div class="value" id="mFiltered">0</div></div>
-        <div class="metric-card"><label>Hal. API Dimuat</label><div class="value" id="mFetched">0</div></div>
-        <div class="metric-card"><label>Total Hal. API</label><div class="value" id="mApiTotal">--</div></div>
+        <div class="metric-card"><label>Hal. Dimuat</label><div class="value" id="mFetched">0</div></div>
+        <div class="metric-card"><label>Estimasi API</label><div class="value" id="mApiTotal">--</div></div>
     </div>
 
     <div class="sync-progress" id="progressArea">
-        <div class="progress-info">
-            <span id="progressLabel">Menghubungkan ke API IGRS...</span>
-            <span id="progressPct">0%</span>
-        </div>
+        <div class="progress-info"><span id="progressLabel">Menghubungkan ke API IGRS...</span><span id="progressPct">0%</span></div>
         <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
     </div>
-
-    <div id="igrs-error-area"></div>
 
     <div class="controls-bar">
         <div class="search-row">
             <div class="search-box">
                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <input type="text" id="searchInput" placeholder="Cari nama gim atau penerbit..." oninput="igrsOnSearch()">
+                <input type="text" id="searchInput" placeholder="Cari nama gim atau penerbit..." oninput="onSearch()">
             </div>
             <div class="dropdown-group">
                 <div class="platform-box">
-                    <select id="platformSelect" onchange="igrsOnPlatform()">
+                    <select id="platformSelect" onchange="onPlatformFilter()">
                         <option value="all">Semua Platform</option>
                         <option value="pc">PC</option>
                         <option value="android">Android</option>
@@ -421,17 +404,17 @@
                     </select>
                 </div>
                 <div class="sort-box">
-                    <select id="sortSelect" onchange="igrsOnSort()">
+                    <select id="sortSelect" onchange="onSort()">
                         <option value="id_desc">Urutan: Terbaru</option>
-                        <option value="name_asc">Nama: A–Z</option>
-                        <option value="name_desc">Nama: Z–A</option>
+                        <option value="name_asc">Nama: A-Z</option>
+                        <option value="name_desc">Nama: Z-A</option>
                         <option value="year_desc">Rilis: Terbaru</option>
                         <option value="year_asc">Rilis: Terlama</option>
                     </select>
                 </div>
             </div>
         </div>
-        <div class="filter-chips" id="ratingChips">
+        <div class="filter-chips">
             <span class="chip active" data-rating="all">Semua Rating</span>
             <span class="chip" data-rating="3+">3+</span>
             <span class="chip" data-rating="13+">13+</span>
@@ -440,22 +423,18 @@
         </div>
     </div>
 
+    <!-- Menghilangkan nesting class grid -->
     <div id="gameContainer"></div>
     <div class="pagination" id="pagination"></div>
 </div>
 
 <script>
 (function() {
-    'use strict';
-
     const API_BASE = 'https://api.igrs.id/public/games';
-    const API_SIZE = 20;
-    const DISPLAY_SIZE = 24;
-    const BATCH_SIZE = 5;
+    const DISPLAY_SIZE = 24; 
 
     let allGames = [];
     let filteredGames = [];
-    let seenIds = new Set();        /* FIX: deduplikasi berdasarkan ID */
     let ratingFilter = 'all';
     let platformFilter = 'all';
     let searchQuery = '';
@@ -463,303 +442,69 @@
     let displayPage = 0;
     let isSyncing = false;
 
-    const el = {
-        total:        document.getElementById('mTotal'),
-        filtered:     document.getElementById('mFiltered'),
-        fetched:      document.getElementById('mFetched'),
-        apiTotal:     document.getElementById('mApiTotal'),
+    const elements = {
+        total: document.getElementById('mTotal'),
+        filtered: document.getElementById('mFiltered'),
+        fetched: document.getElementById('mFetched'),
+        apiTotal: document.getElementById('mApiTotal'),
         progressFill: document.getElementById('progressFill'),
-        progressPct:  document.getElementById('progressPct'),
-        progressLabel:document.getElementById('progressLabel'),
-        syncStatus:   document.getElementById('syncStatus'),
-        syncText:     document.getElementById('syncText'),
-        container:    document.getElementById('gameContainer'),
-        pagination:   document.getElementById('pagination'),
+        progressPct: document.getElementById('progressPct'),
+        progressLabel: document.getElementById('progressLabel'),
+        syncStatus: document.getElementById('syncStatus'),
+        syncText: document.getElementById('syncText'),
+        container: document.getElementById('gameContainer'),
+        pagination: document.getElementById('pagination'),
         progressArea: document.getElementById('progressArea'),
-        errorArea:    document.getElementById('igrs-error-area'),
-        modal:        document.getElementById('igrs-modal-overlay'),
-        modalBody:    document.getElementById('igrs-modal-body'),
+        modal: document.getElementById('igrs-modal-overlay'),
+        modalBody: document.getElementById('igrs-modal-body'),
+        sortSelect: document.getElementById('sortSelect')
     };
 
-    /* ── FIX 1: ratingClass — urutan eksplisit, bukan substring "3" ── */
-    function ratingClass(rawName) {
-        const n = (rawName || '').trim();
-        if (n === '18+') return 'r-18';
-        if (n === '15+') return 'r-15';
-        if (n === '13+') return 'r-13';
-        if (n === '3+')  return 'r-3';
-        return 'r-ur';
-    }
+    const sleep = ms => new Promise(res => setTimeout(res, ms));
 
-    function borderClass(rawName) {
-        const n = (rawName || '').trim();
-        if (n === '18+') return 'bor-18';
-        if (n === '15+') return 'bor-15';
-        if (n === '13+') return 'bor-13';
-        if (n === '3+')  return 'bor-3';
-        return 'bor-ur';
-    }
-
-    function setProgress(fetched, total) {
-        const pct = total ? Math.min(100, Math.round((fetched / total) * 100)) : 0;
-        el.progressFill.style.width = pct + '%';
-        el.progressPct.textContent  = pct + '%';
-        el.progressLabel.textContent =
-            total
-                ? 'Memuat: ' + allGames.length.toLocaleString('id-ID') + ' gim dari ' + total + ' hal. API'
-                : 'Menghubungkan ke API...';
-        el.fetched.textContent  = fetched;
-        el.apiTotal.textContent = total || '--';
-    }
-
-    function showError(msg) {
-        el.errorArea.innerHTML =
-            '<div class="error-notice">' + msg + '</div>';
-    }
-
-    /* ── FIX 2: loop aman — berhenti di totalPages, bukan while < 1000 ── */
-    /* ── FIX 3: batch fetch paralel — tidak ada sleep(50) per halaman   ── */
-    
     async function startSync() {
         if (isSyncing) return;
         isSyncing = true;
-        el.syncStatus.classList.add('active');
-        el.syncText.textContent = 'Sinkronisasi...';
-        el.progressArea.style.display = 'block';
-        el.progressArea.style.opacity = '1';
+        elements.syncStatus.classList.add('active');
+        elements.syncText.innerText = "Sinkronisasi...";
+        let page = 0;
+        let totalPages = 100;
 
         try {
-            // Kita pakai link langsung supaya tidak ada salah variabel
-            const targetUrl = 'https://api.igrs.id/public/games';
-            
-            // 1. Ambil Halaman Pertama
-            const res0 = await fetch(`${targetUrl}?page=0&size=20&sort=id,desc`);
-            if (!res0.ok) throw new Error('Gagal koneksi ke API IGRS');
-            const data0 = await res0.json();
-
-            // Ambil info halaman secara dinamis
-            const totalPages = data0.page?.totalPages || 1;
-            const currentSize = data0.page?.size || 20;
-            
-            // Update tampilan awal
-            if (el.totalHal) el.totalHal.textContent = totalPages;
-
-            // Masukkan data halaman 0
-            const items0 = data0._embedded?.publicGameResultList || [];
-            items0.forEach(g => {
-                if (!seenIds.has(g.id)) {
-                    seenIds.add(g.id);
-                    allGames.push(g);
-                }
-            });
-
-            el.total.textContent = allGames.length.toLocaleString('id-ID');
-            setProgress(1, totalPages);
-
-            // 2. Loop Sisa Halaman
-            if (totalPages > 1) {
-                for (let p = 1; p < totalPages; p++) {
-                    const res = await fetch(`${targetUrl}?page=${p}&size=${currentSize}&sort=id,desc`);
-                    if (!res.ok) continue; // Jika satu halaman gagal, lanjut ke berikutnya
-                    
-                    const data = await res.json();
-                    const items = data._embedded?.publicGameResultList || [];
-                    
-                    items.forEach(g => {
-                        if (!seenIds.has(g.id)) {
-                            seenIds.add(g.id);
-                            allGames.push(g);
-                        }
-                    });
-
-                    // Update UI secara Live
-                    el.total.textContent = allGames.length.toLocaleString('id-ID');
-                    if (el.halDimuat) el.halDimuat.textContent = (p + 1);
-                    setProgress(p + 1, totalPages);
-                }
+            while (page < 1000) {
+                const response = await fetch(`${API_BASE}?page=${page}&size=20&sort=id,desc`);
+                if (!response.ok) break;
+                const data = await response.json();
+                const items = data._embedded?.publicGameResultList || data.content || [];
+                if (data.page) { totalPages = data.page.totalPages; elements.apiTotal.innerText = totalPages; }
+                if (items.length === 0) break;
+                items.forEach(g => { if (!allGames.find(x => x.id === g.id)) allGames.push(g); });
+                elements.total.innerText = allGames.length.toLocaleString('id-ID');
+                elements.fetched.innerText = page + 1;
+                const prog = Math.min(100, Math.round(((page + 1) / totalPages) * 100));
+                elements.progressFill.style.width = prog + '%';
+                elements.progressPct.innerText = prog + '%';
+                elements.progressLabel.innerText = `Memuat: ${allGames.length} gim`;
+                if (page === 0 || page % 5 === 0) applyFilters();
+                page++;
+                await sleep(50);
             }
-
-            // Selesai dengan Sukses
             isSyncing = false;
-            el.syncStatus.classList.remove('active');
-            el.syncText.textContent = 'Data Sinkron ✓';
+            elements.syncText.innerText = "Data Sinkron";
+            elements.syncStatus.classList.remove('active');
+            setTimeout(() => elements.progressArea.style.opacity = '0', 2000);
+            setTimeout(() => elements.progressArea.style.display = 'none', 2500);
             applyFilters();
-
-            setTimeout(() => {
-                el.progressArea.style.opacity = '0';
-                setTimeout(() => { el.progressArea.style.display = 'none'; }, 500);
-            }, 2000);
-
-        } catch (e) {
-            console.error(e);
-            isSyncing = false;
-            el.syncStatus.classList.remove('active');
-            el.syncText.textContent = 'Gagal';
-            alert('Waduh, gagal narik data: ' + e.message);
-        }
+        } catch (e) { console.error(e); }
     }
 
-    /* ── Filter & render ── */
-    function applyFilters() {
-        let results = [...allGames];
+    window.onSearch = () => { searchQuery = document.getElementById('searchInput').value.toLowerCase(); displayPage = 0; applyFilters(); };
+    window.onSort = () => { sortOrder = elements.sortSelect.value; applyFilters(); };
+    window.onPlatformFilter = () => { platformFilter = document.getElementById('platformSelect').value; displayPage = 0; applyFilters(); };
 
-        if (ratingFilter !== 'all') {
-            results = results.filter(g =>
-                g.ratings?.some(r => (r.name || '').trim() === ratingFilter)
-            );
-        }
-
-        if (platformFilter !== 'all') {
-            results = results.filter(g => {
-                const plats = g.platformsName || g.platforms || [];
-                return plats.some(p => {
-                    const name = typeof p === 'object' ? p.name : p;
-                    return (name || '').toLowerCase().includes(platformFilter);
-                });
-            });
-        }
-
-        if (searchQuery) {
-            results = results.filter(g =>
-                (g.name || '').toLowerCase().includes(searchQuery) ||
-                (g.publisherName || '').toLowerCase().includes(searchQuery)
-            );
-        }
-
-        const sort = document.getElementById('sortSelect')?.value || 'id_desc';
-        if (sort === 'name_asc')  results.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-        if (sort === 'name_desc') results.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
-        if (sort === 'year_desc') results.sort((a, b) => (b.releaseYear || 0) - (a.releaseYear || 0));
-        if (sort === 'year_asc')  results.sort((a, b) => (a.releaseYear || 0) - (b.releaseYear || 0));
-        if (sort === 'id_desc')   results.sort((a, b) => b.id - a.id);
-
-        filteredGames = results;
-        el.filtered.textContent = filteredGames.length.toLocaleString('id-ID');
-        render();
-    }
-
-    function render() {
-        const start = displayPage * DISPLAY_SIZE;
-        const slice = filteredGames.slice(start, start + DISPLAY_SIZE);
-        const totalDP = Math.ceil(filteredGames.length / DISPLAY_SIZE);
-
-        if (!slice.length) {
-            el.container.innerHTML =
-                '<div style="text-align:center;padding:50px;color:var(--igrs-text-faint);font-size:14px;">' +
-                (allGames.length ? 'Tidak ada gim yang cocok.' : 'Memuat data...') +
-                '</div>';
-            el.pagination.innerHTML = '';
-            return;
-        }
-
-        el.container.innerHTML = '<div class="game-grid">' +
-            slice.map(g => {
-                const rName = g.ratings?.[0]?.name || '';
-                const rc    = ratingClass(rName);
-                const plats = (g.platformsName || g.platforms || [])
-                    .slice(0, 3)
-                    .map(x => '<span class="platform-tag">' + (typeof x === 'object' ? x.name : x).trim() + '</span>')
-                    .join(' ');
-                return '<div class="game-card" onclick="igrsOpenDetail(' + g.id + ')">' +
-                    '<div class="game-header">' +
-                        '<span class="game-title">' + escHtml(g.name) + '</span>' +
-                        '<span class="rating-pill ' + rc + '">' + (rName || 'UR') + '</span>' +
-                    '</div>' +
-                    '<div class="publisher">' + escHtml(g.publisherName || 'Penerbit Anonim') + '</div>' +
-                    '<div style="display:flex;gap:5px;flex-wrap:wrap;">' + (plats || '') + '</div>' +
-                '</div>';
-            }).join('') +
-        '</div>';
-
-        renderPager(totalDP);
-    }
-
-    function renderPager(total) {
-        if (total <= 1) { el.pagination.innerHTML = ''; return; }
-        el.pagination.innerHTML =
-            '<button class="page-btn" onclick="igrsGoP(' + (displayPage - 1) + ')" ' + (displayPage === 0 ? 'disabled' : '') + '>‹ Prev</button>' +
-            '<span class="page-info">' + (displayPage + 1) + ' / ' + total + '</span>' +
-            '<button class="page-btn" onclick="igrsGoP(' + (displayPage + 1) + ')" ' + (displayPage >= total - 1 ? 'disabled' : '') + '>Next ›</button>';
-    }
-
-    /* ── Modal detail ── */
-    /* FIX 4: endpoint /public/games/{id} mungkin tidak ada.
-       Kita ambil data dari cache allGames dulu.
-       Fallback ke fetch individual hanya jika id tidak ada di cache. */
-    window.igrsOpenDetail = async function(id) {
-        el.modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-        el.modalBody.innerHTML = loadingSpinner();
-
-        let g = allGames.find(x => x.id === id);
-
-        if (!g) {
-            /* Fallback: coba fetch individual */
-            try {
-                const res = await fetch(API_BASE + '/' + id);
-                if (res.ok) g = await res.json();
-            } catch (_) {}
-        }
-
-        if (!g) {
-            el.modalBody.innerHTML =
-                '<div style="text-align:center;padding:50px;color:var(--igrs-red);font-family:var(--igrs-font-mono);font-size:13px;">' +
-                'Data gim tidak ditemukan.<br><br>' +
-                '<small>Endpoint detail mungkin tidak tersedia di API ini.</small>' +
-                '</div>';
-            return;
-        }
-
-        const rName = g.ratings?.[0]?.name || '';
-        const rDesc = g.ratings?.[0]?.contentId || g.ratings?.[0]?.contentEn || 'Deskripsi klasifikasi tidak tersedia.';
-        const rc    = ratingClass(rName);
-        const bc    = borderClass(rName);
-        const plats = (g.platformsName || g.platforms || [])
-            .map(x => '<span class="platform-tag" style="font-size:11px;padding:4px 10px;">' + (typeof x === 'object' ? x.name : x).trim() + '</span>')
-            .join(' ');
-        const descriptors = (g.descriptors || []);
-
-        el.modalBody.innerHTML =
-            '<div class="modal-header-bar">' +
-                '<h2 style="font-family:var(--igrs-font-display);font-size:clamp(20px,4vw,26px);line-height:1.2;margin:0 0 16px 0;color:var(--igrs-text);padding-right:48px;">' + escHtml(g.name) + '</h2>' +
-                '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">' +
-                    '<span class="rating-pill ' + rc + '" style="font-size:18px;padding:8px 22px;border-radius:10px;font-weight:800;">' + (rName || 'UNRATED') + '</span>' +
-                    '<span style="font-family:var(--igrs-font-mono);font-size:13px;color:var(--igrs-text);background:var(--igrs-bg);border:1px solid var(--igrs-border);padding:8px 16px;border-radius:10px;">Terbit: ' + (g.releaseYear || 'N/A') + '</span>' +
-                '</div>' +
-                '<div style="font-size:14px;color:var(--igrs-text-muted);margin-top:16px;">Penerbit: <strong style="color:var(--igrs-text);">' + escHtml(g.publisherName || 'Tidak diketahui') + '</strong></div>' +
-            '</div>' +
-            '<div class="modal-scroll-area">' +
-                (g.description ? '<div style="margin-bottom:2rem;"><span class="detail-section-label">Sinopsis</span><div class="synopsis-box">' + escHtml(g.description) + '</div></div>' : '') +
-                '<div style="margin-bottom:2rem;"><span class="detail-section-label">Platform</span><div style="display:flex;gap:8px;flex-wrap:wrap;">' + (plats || '<span style="color:var(--igrs-text-faint);font-size:13px;">Tidak tersedia</span>') + '</div></div>' +
-                (descriptors.length ? '<div style="margin-bottom:2rem;"><span class="detail-section-label">Deskriptor Konten</span><div style="display:flex;gap:8px;flex-wrap:wrap;">' + descriptors.map(d => '<span style="font-size:12px;font-family:var(--igrs-font-mono);background:var(--igrs-bg);border:1px solid var(--igrs-border);border-radius:6px;padding:4px 10px;">' + escHtml(d.nameId || d.nameEn) + '</span>').join('') + '</div></div>' : '') +
-                '<div><span class="detail-section-label">Kriteria Klasifikasi IGRS</span><div class="rating-desc-box ' + bc + '"><strong style="display:block;margin-bottom:10px;font-size:14px;">Kategori ' + (rName || 'Unrated') + '</strong>' + escHtml(rDesc) + '</div></div>' +
-                '<div style="margin-top:2.5rem;padding-top:16px;border-top:1px solid var(--igrs-border);font-size:11px;color:var(--igrs-text-faint);font-family:var(--igrs-font-mono);display:flex;justify-content:space-between;">' +
-                    '<span>ID: #' + g.id + '</span><span>IGRS.ID</span>' +
-                '</div>' +
-            '</div>';
-    };
-
-    window.igrsCloseDetail = function(e) {
-        if (e && e.target !== el.modal) return;
-        el.modal.classList.remove('active');
-        document.body.style.overflow = '';
-    };
-
-    window.igrsGoP = function(p) {
-        const total = Math.ceil(filteredGames.length / DISPLAY_SIZE);
-        if (p < 0 || p >= total) return;
-        displayPage = p;
-        render();
-        document.getElementById('igrs-app-container').scrollIntoView({ behavior: 'smooth' });
-    };
-
-    window.igrsOnSearch   = function() { searchQuery = document.getElementById('searchInput').value.toLowerCase(); displayPage = 0; applyFilters(); };
-    window.igrsOnSort     = function() { sortOrder = document.getElementById('sortSelect').value; applyFilters(); };
-    window.igrsOnPlatform = function() { platformFilter = document.getElementById('platformSelect').value; displayPage = 0; applyFilters(); };
-
-    document.querySelectorAll('#ratingChips .chip').forEach(chip => {
+    document.querySelectorAll('#igrs-app-container .chip').forEach(chip => {
         chip.addEventListener('click', function() {
-            document.querySelectorAll('#ratingChips .chip').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('#igrs-app-container .chip').forEach(c => c.classList.remove('active'));
             this.classList.add('active');
             ratingFilter = this.dataset.rating;
             displayPage = 0;
@@ -767,20 +512,120 @@
         });
     });
 
-    function escHtml(str) {
-        return String(str || '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
+    function applyFilters() {
+        let results = [...allGames];
+        if (ratingFilter !== 'all') results = results.filter(g => g.ratings?.some(r => r.name.trim() === ratingFilter));
+        
+        if (platformFilter !== 'all') {
+            results = results.filter(g => {
+                let platsRaw = g.platformsName || g.platforms || g.gamePlatforms || [];
+                if (!Array.isArray(platsRaw)) return false;
+                return platsRaw.some(p => {
+                    let pName = typeof p === 'object' ? p.name : p;
+                    return pName.toLowerCase().includes(platformFilter);
+                });
+            });
+        }
+
+        if (searchQuery) results = results.filter(g => (g.name?.toLowerCase().includes(searchQuery)) || (g.publisherName?.toLowerCase().includes(searchQuery)));
+        
+        results.sort((a, b) => {
+            if (sortOrder === 'name_asc') return (a.name || "").localeCompare(b.name || "");
+            if (sortOrder === 'name_desc') return (b.name || "").localeCompare(a.name || "");
+            if (sortOrder === 'year_desc') return (b.releaseYear || 0) - (a.releaseYear || 0);
+            if (sortOrder === 'year_asc') return (a.releaseYear || 0) - (b.releaseYear || 0);
+            return b.id - a.id;
+        });
+
+        filteredGames = results;
+        elements.filtered.innerText = filteredGames.length.toLocaleString('id-ID');
+        render();
     }
 
-    function loadingSpinner() {
-        return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;">' +
-            '<div style="width:40px;height:40px;border:4px solid var(--igrs-border);border-top-color:var(--igrs-text);border-radius:50%;animation:igrs-spin 0.8s linear infinite;"></div>' +
-            '<p style="margin-top:15px;font-size:12px;color:var(--igrs-text-faint);font-family:var(--igrs-font-mono);">Memuat detail...</p>' +
-        '</div>';
+    function render() {
+        const start = displayPage * DISPLAY_SIZE;
+        const slice = filteredGames.slice(start, start + DISPLAY_SIZE);
+        if (slice.length === 0) { 
+            elements.container.innerHTML = '<div style="text-align:center; padding:50px; color:var(--igrs-text-faint); font-size: 14px;">Tidak ada data ditemukan.</div>'; 
+            elements.pagination.innerHTML = '';
+            return; 
+        }
+        
+        // Membungkus kartu dengan grid sejati
+        elements.container.innerHTML = `<div class="game-grid">` + slice.map(g => {
+            const r = g.ratings?.[0]?.name || 'UR';
+            const rc = r.includes('3') ? 'r-3' : r.includes('13') ? 'r-13' : r.includes('15') ? 'r-15' : r.includes('18') ? 'r-18' : 'r-unrated';
+            const plats = (g.platformsName || g.platforms || []).slice(0,3).map(x => `<span class="platform-tag">${typeof x === 'object' ? x.name : x}</span>`).join(' ');
+            return `
+                <div class="game-card" onclick="openDetail(${g.id})">
+                    <div class="game-header">
+                        <span class="game-title">${g.name}</span>
+                        <span class="rating-pill ${rc}">${r}</span>
+                    </div>
+                    <div class="publisher">${g.publisherName || 'Penerbit Anonim'}</div>
+                    <div style="display:flex;gap:5px;flex-wrap:wrap;">${plats}</div>
+                </div>
+            `;
+        }).join('') + `</div>`;
+        renderPager();
     }
+
+    window.openDetail = async id => {
+        elements.modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        elements.modalBody.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;"><div style="width:40px;height:40px;border:4px solid var(--igrs-border);border-top-color:var(--igrs-text);border-radius:50%;animation:igrs-spin 0.8s linear infinite;"></div><p style="margin-top:15px;font-size:12px;color:var(--igrs-text-faint);font-family:var(--igrs-font-mono);">Sinkronisasi data resmi...</p></div>`;
+        
+        try {
+            const res = await fetch(`${API_BASE}/${id}`);
+            const g = await res.json();
+            const r = g.ratings?.[0] || {};
+            const desc = r.contentId || g.ratingDescription || r.description || "Deskripsi klasifikasi tidak tersedia untuk gim ini.";
+            const plats = (g.platformsName || g.platforms || []).map(x => `<span class="platform-tag" style="font-size:11px; padding: 4px 10px;">${typeof x === 'object' ? x.name : x}</span>`).join(' ');
+            
+            const rc = (r.name || "").includes('3') ? 'r-3' : (r.name || "").includes('13') ? 'r-13' : (r.name || "").includes('15') ? 'r-15' : 'r-18';
+            const borderClass = (r.name || "").includes('3') ? 'bor-3' : (r.name || "").includes('13') ? 'bor-13' : (r.name || "").includes('15') ? 'bor-15' : 'bor-18';
+            
+            elements.modalBody.innerHTML = `
+                <div class="modal-header-bar">
+                    <h2 style="font-family:var(--igrs-font-display); font-size:clamp(22px, 4vw, 28px); line-height:1.2; margin:0 0 16px 0; color:var(--igrs-text); padding-right:40px;">${g.name}</h2>
+                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <span class="rating-pill ${rc}" style="font-size:18px; padding:8px 22px; border-radius:10px; font-weight:800; letter-spacing:0.5px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">${r.name || 'UNRATED'}</span>
+                        <span style="font-family:var(--igrs-font-mono); font-size:14px; color:var(--igrs-text); font-weight:600; background:var(--igrs-bg); border:1px solid var(--igrs-border); padding:8px 16px; border-radius:10px;">Terbit: ${g.releaseYear || 'N/A'}</span>
+                    </div>
+                    <div style="font-size:14px; color:var(--igrs-text-muted); margin-top:20px; font-weight:500;">Penerbit: <span style="color:var(--igrs-text)">${g.publisherName || 'Tidak diketahui'}</span></div>
+                </div>
+                
+                <div class="modal-scroll-area">
+                    <div style="margin-bottom:2.5rem;">
+                        <span class="detail-section-label">Sinopsis & Cerita</span>
+                        <div class="synopsis-box">${g.description || 'Sinopsis belum tersedia untuk gim ini.'}</div>
+                    </div>
+                    
+                    <div style="margin-bottom:2.5rem;">
+                        <span class="detail-section-label">Platform Tersedia</span>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">${plats || '<span style="color:var(--igrs-text-faint); font-style:italic;">Data platform tidak tersedia</span>'}</div>
+                    </div>
+
+                    <div>
+                        <span class="detail-section-label">Kriteria Klasifikasi IGRS</span>
+                        <div class="rating-desc-premium ${borderClass}">
+                            <strong style="display:block; margin-bottom:12px; color:var(--igrs-text); font-size:15px;">Kategori ${r.name}:</strong>
+                            ${desc}
+                        </div>
+                    </div>
+
+                    <div style="margin-top:3.5rem; padding-top:20px; border-top:1px solid var(--igrs-border); font-size:11px; color:var(--igrs-text-faint); font-family:var(--igrs-font-mono); display:flex; justify-content:space-between; letter-spacing:0.05em;">
+                        <span>ID: #${g.id}</span>
+                        <span>IGRS.ID OFFICIAL</span>
+                    </div>
+                </div>
+            `;
+        } catch(e) { elements.modalBody.innerHTML = '<div style="text-align:center;padding:50px;color:var(--igrs-red);">Gagal memuat detail gim.</div>'; }
+    };
+
+    window.closeDetail = () => { elements.modal.classList.remove('active'); document.body.style.overflow = ''; };
+    function renderPager() { const tp = Math.ceil(filteredGames.length / DISPLAY_SIZE); if (tp <= 1) { elements.pagination.innerHTML = ''; return; } elements.pagination.innerHTML = `<button class="page-btn" onclick="goP(${displayPage-1})" ${displayPage===0?'disabled':''}>‹</button><span class="page-info">${displayPage+1} / ${tp}</span><button class="page-btn" onclick="goP(${displayPage+1})" ${displayPage>=tp-1?'disabled':''}>›</button>`; }
+    window.goP = p => { displayPage = p; render(); document.getElementById('igrs-app-container').scrollIntoView({behavior:'smooth'}); };
 
     startSync();
 })();
