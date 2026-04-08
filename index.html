@@ -540,6 +540,11 @@
             setProgress(1, totalPages);
             applyFilters();
 
+            // TAMBAHKAN BARIS INI:
+            console.log("Jumlah data masuk ke allGames:", allGames.length); 
+            
+            el.total.textContent = allGames.length.toLocaleString('id-ID');
+
             /* Fetch sisa halaman dalam batch paralel */
             let fetchedCount = 1;
             for (let start = 1; start < totalPages; start += BATCH_SIZE) {
