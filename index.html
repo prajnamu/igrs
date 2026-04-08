@@ -530,6 +530,7 @@
             const res0 = await fetch(API_BASE + '?page=0&size=' + API_SIZE + '&sort=id,desc');
             if (!res0.ok) throw new Error('HTTP ' + res0.status);
             const data0 = await res0.json();
+            console.log("Struktur API:", data0);
 
             const items0 = data0._embedded?.publicGameResultList || [];
             let totalPages = data0.page?.totalPages || 1;
