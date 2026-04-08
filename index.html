@@ -519,89 +519,83 @@
 
     /* ── FIX 2: loop aman — berhenti di totalPages, bukan while < 1000 ── */
     /* ── FIX 3: batch fetch paralel — tidak ada sleep(50) per halaman   ── */
+    
     async function startSync() {
         if (isSyncing) return;
         isSyncing = true;
         el.syncStatus.classList.add('active');
         el.syncText.textContent = 'Sinkronisasi...';
+        el.progressArea.style.display = 'block';
+        el.progressArea.style.opacity = '1';
 
         try {
-            // 1. Ambil data pertama untuk memicu info halaman
-            const res0 = await fetch('https://api.igrs.id/public/games?page=0&size=20&sort=id,desc');
-            if (!res0.ok) throw new Error('Koneksi API Gagal');
+            // Kita pakai link langsung supaya tidak ada salah variabel
+            const targetUrl = 'https://api.igrs.id/public/games';
+            
+            // 1. Ambil Halaman Pertama
+            const res0 = await fetch(`${targetUrl}?page=0&size=20&sort=id,desc`);
+            if (!res0.ok) throw new Error('Gagal koneksi ke API IGRS');
             const data0 = await res0.json();
 
-            // AMBIL INFO HALAMAN SECARA TEGAS
-            let totalPages = 0;
-            if (data0.page) {
-                totalPages = data0.page.totalPages;
-            } else {
-                totalPages = 1; // Fallback jika gagal baca
-            }
-            
+            // Ambil info halaman secara dinamis
+            const totalPages = data0.page?.totalPages || 1;
             const currentSize = data0.page?.size || 20;
-
-            console.log("DEBUG: Total Halaman ditemukan:", totalPages);
+            
+            // Update tampilan awal
+            if (el.totalHal) el.totalHal.textContent = totalPages;
 
             // Masukkan data halaman 0
             const items0 = data0._embedded?.publicGameResultList || [];
-            items0.forEach(g => { 
-                if (!seenIds.has(g.id)) { 
-                    seenIds.add(g.id); 
-                    allGames.push(g); 
-                } 
+            items0.forEach(g => {
+                if (!seenIds.has(g.id)) {
+                    seenIds.add(g.id);
+                    allGames.push(g);
+                }
             });
 
-            // Update UI awal
             el.total.textContent = allGames.length.toLocaleString('id-ID');
-            // Pastikan elemen untuk "TOTAL HAL. API" juga diupdate di sini
-            // (Sesuaikan nama variabel elemennya, misal: el.totalHal)
-            if(el.totalHal) el.totalHal.textContent = totalPages; 
+            setProgress(1, totalPages);
 
-            /* 2. AMBIL SISA HALAMAN (Pake Loop Biasa biar Stabil) */
+            // 2. Loop Sisa Halaman
             if (totalPages > 1) {
                 for (let p = 1; p < totalPages; p++) {
-                    try {
-                        const res = await fetch(`https://api.igrs.id/public/games?page=${p}&size=${currentSize}&sort=id,desc`);
-                        const data = await res.json();
-                        const items = data._embedded?.publicGameResultList || [];
-                        
-                        items.forEach(g => {
-                            if (!seenIds.has(g.id)) { 
-                                seenIds.add(g.id); 
-                                allGames.push(g); 
-                            }
-                        });
+                    const res = await fetch(`${targetUrl}?page=${p}&size=${currentSize}&sort=id,desc`);
+                    if (!res.ok) continue; // Jika satu halaman gagal, lanjut ke berikutnya
+                    
+                    const data = await res.json();
+                    const items = data._embedded?.publicGameResultList || [];
+                    
+                    items.forEach(g => {
+                        if (!seenIds.has(g.id)) {
+                            seenIds.add(g.id);
+                            allGames.push(g);
+                        }
+                    });
 
-                        // Update tampilan tiap kali dapet data baru
-                        el.total.textContent = allGames.length.toLocaleString('id-ID');
-                        // Update angka "HAL. API DIMUAT"
-                        if(el.halDimuat) el.halDimuat.textContent = (p + 1);
-                        
-                        setProgress(p + 1, totalPages);
-                    } catch (err) {
-                        console.error("Gagal di halaman " + p);
-                    }
+                    // Update UI secara Live
+                    el.total.textContent = allGames.length.toLocaleString('id-ID');
+                    if (el.halDimuat) el.halDimuat.textContent = (p + 1);
+                    setProgress(p + 1, totalPages);
                 }
             }
 
-            // Selesai
+            // Selesai dengan Sukses
             isSyncing = false;
             el.syncStatus.classList.remove('active');
             el.syncText.textContent = 'Data Sinkron ✓';
             applyFilters();
 
+            setTimeout(() => {
+                el.progressArea.style.opacity = '0';
+                setTimeout(() => { el.progressArea.style.display = 'none'; }, 500);
+            }, 2000);
+
         } catch (e) {
+            console.error(e);
             isSyncing = false;
             el.syncStatus.classList.remove('active');
             el.syncText.textContent = 'Gagal';
-            showError(
-                '<strong>Gagal terhubung ke API IGRS.</strong><br>' +
-                'Error: ' + e.message + '<br><br>' +
-                'Kemungkinan CORS diblokir dari domain ini. ' +
-                'Hosting file di server WordPress dan tambahkan PHP proxy, atau minta pengelola IGRS mengaktifkan CORS header.'
-            );
-            el.progressArea.style.display = 'none';
+            alert('Waduh, gagal narik data: ' + e.message);
         }
     }
 
