@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IGRS Game Classifier Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap" rel="stylesheet">
+    <style>
+        #igrs-app-container, #igrs-modal-overlay {
+            --igrs-bg: #F7F5F0;
+            --igrs-surface: #FFFFFF;
+            --igrs-border: #E2DDD6;
+            --igrs-border-strong: #C8C2B8;
+            --igrs-text: #1A1814;
+            --igrs-text-muted: #6B655C;
+            --igrs-text-faint: #A09890;
+            --igrs-green: #2D6A4F;
+            --igrs-green-bg: #D8F3DC;
+            --igrs-amber: #7B4F12;
+            --igrs-amber-bg: #FFF3CD;
+            --igrs-red: #7B1F1F;
+            --igrs-red-bg: #FFE0E0;
+            --igrs-blue: #1A3A5C;
+            --igrs-blue-bg: #DCE8F7;
+            --igrs-font-display: 'Fraunces', Georgia, serif;
+            --igrs-font-body: 'DM Sans', sans-serif;
+            --igrs-font-mono: 'DM Mono', monospace;
+            font-family: var(--igrs-font-body);
+            color: var(--igrs-text);
+            -webkit-font-smoothing: antialiased;
+            box-sizing: border-box;
+        }
+
+        #igrs-app-container * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        #igrs-app-container {
+            width: 100%;
+            margin: 15px auto;
+            padding: 1.5rem;
+            background: var(--igrs-bg);
+            line-height: 1.5;
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.03);
+            text-align: left;
+            overflow: hidden;
+        }
+
+        #igrs-app-container header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        #igrs-app-container .header-title h1 {
+            font-family: var(--igrs-font-display);
+            font-size: clamp(24px, 5vw, 32px);
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 6px;
+            color: var(--igrs-text);
+        }
+
+        #igrs-app-container .header-title p { color: var(--igrs-text-muted); font-size: 14px; margin: 0; }
+
+        #igrs-app-container .sync-badge {
+            font-family: var(--igrs-font-mono);
+            font-size: 11px;
+            padding: 6px 14px;
+            border-radius: 30px;
+            background: var(--igrs-surface);
+            border: 1px solid var(--igrs-border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #igrs-app-container .sync-badge.active { color: var(--igrs-green); border-color: var(--igrs-green); }
+        #igrs-app-container .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
+        #igrs-app-container .sync-badge.active .dot { background: var(--igrs-green); animation: igrs-pulse 1.5s infinite; }
+
+        @keyframes igrs-pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes igrs-spin { to { transform: rotate(360deg); } }
+
+        #igrs-app-container .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 2rem;
+        }
+
+        #igrs-app-container .metric-card {
+            background: var(--igrs-surface);
+            border: 1px solid var(--igrs-border);
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        #igrs-app-container .metric-card label {
+            display: block;
+            font-family: var(--igrs-font-mono);
+            font-size: 9px;
+            text-transform: uppercase;
+            color: var(--igrs-text-muted);
+            margin-bottom: 6px;
+            letter-spacing: 0.05em;
+        }
+
+        #igrs-app-container .metric-card .value {
+            font-family: var(--igrs-font-display);
+            font-size: clamp(20px, 3vw, 26px);
+            font-weight: 600;
+            color: var(--igrs-text);
+        }
+
+        #igrs-app-container .sync-progress {
+            background: var(--igrs-surface);
+            border: 1px solid var(--igrs-border);
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            transition: opacity 0.5s;
+        }
+
+        #igrs-app-container .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-family: var(--igrs-font-mono);
+            font-size: 11px;
+            color: var(--igrs-text);
+        }
+
+        #igrs-app-container .progress-track { height: 6px; background: var(--igrs-bg); border-radius: 10px; overflow: hidden; }
+        #igrs-app-container .progress-fill { height: 100%; background: var(--igrs-green); width: 0%; transition: width 0.4s ease; }
+
+        #igrs-app-container .controls-bar {
+            background: var(--igrs-surface);
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid var(--igrs-border);
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #igrs-app-container .search-row { display: flex; gap: 12px; flex-wrap: wrap; }
+        #igrs-app-container .search-box { position: relative; flex: 1; min-width: 180px; }
+        #igrs-app-container .search-box input {
+            width: 100%;
+            padding: 12px 14px 12px 40px;
+            border-radius: 10px;
+            border: 1px solid var(--igrs-border);
+            font-family: var(--igrs-font-body);
+            font-size: 14px;
+            outline: none;
+            background: #fff;
+            color: var(--igrs-text);
+        }
+        #igrs-app-container .search-box svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--igrs-text-faint); }
+
+        #igrs-app-container .dropdown-group { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        #igrs-app-container .sort-box select,
+        #igrs-app-container .platform-box select {
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--igrs-border);
+            font-family: var(--igrs-font-body);
+            font-size: 14px;
+            background: var(--igrs-bg);
+            color: var(--igrs-text);
+            cursor: pointer;
+        }
+
+        #igrs-app-container .filter-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+        #igrs-app-container .filter-chips::-webkit-scrollbar { display: none; }
+        #igrs-app-container .chip {
+            white-space: nowrap;
+            padding: 6px 16px;
+            border-radius: 50px;
+            border: 1px solid var(--igrs-border);
+            background: var(--igrs-bg);
+            font-family: var(--igrs-font-mono);
+            font-size: 12px;
+            cursor: pointer;
+            color: var(--igrs-text);
+            transition: all 0.2s;
+            user-select: none;
+        }
+        #igrs-app-container .chip.active { background: var(--igrs-text); color: white; border-color: var(--igrs-text); }
+
+        #igrs-app-container .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+            width: 100%;
+        }
+
+        #igrs-app-container .game-card {
+            background: var(--igrs-surface);
+            border: 1px solid var(--igrs-border);
+            border-radius: 14px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        #igrs-app-container .game-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.06); border-color: var(--igrs-border-strong); }
+
+        #igrs-app-container .game-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+        #igrs-app-container .game-title { font-family: var(--igrs-font-display); font-size: 16px; font-weight: 700; line-height: 1.3; color: var(--igrs-text); }
+
+        #igrs-app-container .rating-pill {
+            font-family: var(--igrs-font-mono);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* FIX: Class rating pakai nama eksplisit, bukan substring match */
+        #igrs-app-container .r-3   { background: var(--igrs-green-bg); color: var(--igrs-green); }
+        #igrs-app-container .r-13  { background: var(--igrs-blue-bg);  color: var(--igrs-blue); }
+        #igrs-app-container .r-15  { background: var(--igrs-amber-bg); color: var(--igrs-amber); }
+        #igrs-app-container .r-18  { background: var(--igrs-red-bg);   color: var(--igrs-red); }
+        #igrs-app-container .r-ur  { background: #eee; color: #777; }
+
+        #igrs-modal-overlay .r-3   { background: var(--igrs-green-bg); color: var(--igrs-green); }
+        #igrs-modal-overlay .r-13  { background: var(--igrs-blue-bg);  color: var(--igrs-blue); }
+        #igrs-modal-overlay .r-15  { background: var(--igrs-amber-bg); color: var(--igrs-amber); }
+        #igrs-modal-overlay .r-18  { background: var(--igrs-red-bg);   color: var(--igrs-red); }
+        #igrs-modal-overlay .r-ur  { background: #eee; color: #777; }
+
+        #igrs-app-container .publisher { font-size: 13px; color: var(--igrs-text-muted); margin-bottom: auto; }
+        #igrs-app-container .platform-tag { font-size: 10px; background: #F0EEEA; padding: 4px 8px; border-radius: 4px; color: var(--igrs-text-muted); font-family: var(--igrs-font-mono); }
+
+        #igrs-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(26, 24, 20, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 9999999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #igrs-modal-overlay.active { display: flex; }
+
+        #igrs-modal-overlay .modal-content {
+            background: var(--igrs-surface);
+            width: 100%;
+            max-width: 640px;
+            max-height: 90vh;
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        #igrs-modal-overlay .close-modal {
+            position: absolute;
+            top: 20px; right: 20px;
+            background: var(--igrs-bg);
+            border: 1px solid var(--igrs-border);
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--igrs-text);
+            font-size: 18px;
+            transition: all 0.2s;
+            z-index: 100;
+        }
+        #igrs-modal-overlay .close-modal:hover { background: var(--igrs-border-strong); }
+
+        #igrs-modal-overlay .modal-header-bar {
+            padding: 2.5rem 2.5rem 1.5rem;
+            border-bottom: 1px solid var(--igrs-border);
+            background: var(--igrs-surface);
+        }
+
+        #igrs-modal-overlay .modal-scroll-area { padding: 2rem 2.5rem 2.5rem; }
+
+        #igrs-modal-overlay .detail-section-label {
+            font-family: var(--igrs-font-mono);
+            font-size: 11px;
+            color: var(--igrs-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        #igrs-modal-overlay .synopsis-box {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--igrs-text);
+            background: #fafafa;
+            padding: 1.25rem;
+            border-radius: 12px;
+            border: 1px solid var(--igrs-border);
+        }
+
+        #igrs-modal-overlay .rating-desc-box {
+            background: var(--igrs-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            font-size: 14px;
+            white-space: pre-line;
+            color: var(--igrs-text);
+            line-height: 1.6;
+            border: 1px solid var(--igrs-border);
+            border-left-width: 4px;
+        }
+        #igrs-modal-overlay .rating-desc-box.bor-3  { border-left-color: var(--igrs-green); }
+        #igrs-modal-overlay .rating-desc-box.bor-13 { border-left-color: var(--igrs-blue); }
+        #igrs-modal-overlay .rating-desc-box.bor-15 { border-left-color: var(--igrs-amber); }
+        #igrs-modal-overlay .rating-desc-box.bor-18 { border-left-color: var(--igrs-red); }
+        #igrs-modal-overlay .rating-desc-box.bor-ur { border-left-color: #ccc; }
+
+        #igrs-app-container .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 2rem; }
+        #igrs-app-container .page-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--igrs-border); background: var(--igrs-surface); font-size: 13px; font-family: var(--igrs-font-mono); cursor: pointer; color: var(--igrs-text); transition: all 0.2s; }
+        #igrs-app-container .page-btn:hover:not(:disabled) { background: var(--igrs-bg); }
+        #igrs-app-container .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        #igrs-app-container .page-info { font-size: 13px; font-family: var(--igrs-font-mono); color: var(--igrs-text-muted); }
+
+        #igrs-app-container .error-notice {
+            background: var(--igrs-red-bg);
+            border: 1px solid #FFBDBD;
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            font-size: 13px;
+            font-family: var(--igrs-font-mono);
+            color: var(--igrs-red);
+            line-height: 1.7;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 600px) {
+            #igrs-app-container .game-grid { grid-template-columns: 1fr; }
+            #igrs-app-container .metrics-grid { grid-template-columns: 1fr 1fr; }
+            #igrs-modal-overlay .modal-content { border-radius: 16px; }
+            #igrs-modal-overlay .modal-header-bar { padding: 2rem 1.5rem 1.5rem; }
+            #igrs-modal-overlay .modal-scroll-area { padding: 1.5rem; }
+            #igrs-app-container .dropdown-group { flex-direction: column; width: 100%; }
+            #igrs-app-container .sort-box select,
+            #igrs-app-container .platform-box select { width: 100%; padding: 10px 14px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="igrs-modal-overlay" onclick="igrsCloseDetail(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="close-modal" aria-label="Tutup" onclick="igrsCloseDetail()">✕</button>
+        <div id="igrs-modal-body" style="overflow-y:auto; flex:1; min-height:0; width:100%;"></div>
+    </div>
+</div>
+
+<div id="igrs-app-container">
+    <header>
+        <div class="header-title">
+            <h1>IGRS Index</h1>
+            <p>Database Indonesia Game Rating System</p>
+        </div>
+        <div class="sync-badge" id="syncStatus">
+            <span class="dot"></span>
+            <span id="syncText">Inisialisasi...</span>
+        </div>
+    </header>
+
+    <div class="metrics-grid">
+        <div class="metric-card"><label>Total Gim</label><div class="value" id="mTotal">0</div></div>
+        <div class="metric-card"><label>Tersaring</label><div class="value" id="mFiltered">0</div></div>
+        <div class="metric-card"><label>Hal. API Dimuat</label><div class="value" id="mFetched">0</div></div>
+        <div class="metric-card"><label>Total Hal. API</label><div class="value" id="mApiTotal">--</div></div>
+    </div>
+
+    <div class="sync-progress" id="progressArea">
+        <div class="progress-info">
+            <span id="progressLabel">Menghubungkan ke API IGRS...</span>
+            <span id="progressPct">0%</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div id="igrs-error-area"></div>
+
+    <div class="controls-bar">
+        <div class="search-row">
+            <div class="search-box">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="searchInput" placeholder="Cari nama gim atau penerbit..." oninput="igrsOnSearch()">
+            </div>
+            <div class="dropdown-group">
+                <div class="platform-box">
+                    <select id="platformSelect" onchange="igrsOnPlatform()">
+                        <option value="all">Semua Platform</option>
+                        <option value="pc">PC</option>
+                        <option value="android">Android</option>
+                        <option value="ios">iOS</option>
+                        <option value="playstation">PlayStation</option>
+                        <option value="xbox">Xbox</option>
+                        <option value="nintendo">Nintendo</option>
+                    </select>
+                </div>
+                <div class="sort-box">
+                    <select id="sortSelect" onchange="igrsOnSort()">
+                        <option value="id_desc">Urutan: Terbaru</option>
+                        <option value="name_asc">Nama: A–Z</option>
+                        <option value="name_desc">Nama: Z–A</option>
+                        <option value="year_desc">Rilis: Terbaru</option>
+                        <option value="year_asc">Rilis: Terlama</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="filter-chips" id="ratingChips">
+            <span class="chip active" data-rating="all">Semua Rating</span>
+            <span class="chip" data-rating="3+">3+</span>
+            <span class="chip" data-rating="13+">13+</span>
+            <span class="chip" data-rating="15+">15+</span>
+            <span class="chip" data-rating="18+">18+</span>
+        </div>
+    </div>
+
+    <div id="gameContainer"></div>
+    <div class="pagination" id="pagination"></div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    const API_BASE = 'https://api.igrs.id/public/games';
+    const API_SIZE = 20;
+    const DISPLAY_SIZE = 24;
+    const BATCH_SIZE = 5;
+
+    let allGames = [];
+    let filteredGames = [];
+    let seenIds = new Set();        /* FIX: deduplikasi berdasarkan ID */
+    let ratingFilter = 'all';
+    let platformFilter = 'all';
+    let searchQuery = '';
+    let sortOrder = 'id_desc';
+    let displayPage = 0;
+    let isSyncing = false;
+
+    const el = {
+        total:        document.getElementById('mTotal'),
+        filtered:     document.getElementById('mFiltered'),
+        fetched:      document.getElementById('mFetched'),
+        apiTotal:     document.getElementById('mApiTotal'),
+        progressFill: document.getElementById('progressFill'),
+        progressPct:  document.getElementById('progressPct'),
+        progressLabel:document.getElementById('progressLabel'),
+        syncStatus:   document.getElementById('syncStatus'),
+        syncText:     document.getElementById('syncText'),
+        container:    document.getElementById('gameContainer'),
+        pagination:   document.getElementById('pagination'),
+        progressArea: document.getElementById('progressArea'),
+        errorArea:    document.getElementById('igrs-error-area'),
+        modal:        document.getElementById('igrs-modal-overlay'),
+        modalBody:    document.getElementById('igrs-modal-body'),
+    };
+
+    /* ── FIX 1: ratingClass — urutan eksplisit, bukan substring "3" ── */
+    function ratingClass(rawName) {
+        const n = (rawName || '').trim();
+        if (n === '18+') return 'r-18';
+        if (n === '15+') return 'r-15';
+        if (n === '13+') return 'r-13';
+        if (n === '3+')  return 'r-3';
+        return 'r-ur';
+    }
+
+    function borderClass(rawName) {
+        const n = (rawName || '').trim();
+        if (n === '18+') return 'bor-18';
+        if (n === '15+') return 'bor-15';
+        if (n === '13+') return 'bor-13';
+        if (n === '3+')  return 'bor-3';
+        return 'bor-ur';
+    }
+
+    function setProgress(fetched, total) {
+        const pct = total ? Math.min(100, Math.round((fetched / total) * 100)) : 0;
+        el.progressFill.style.width = pct + '%';
+        el.progressPct.textContent  = pct + '%';
+        el.progressLabel.textContent =
+            total
+                ? 'Memuat: ' + allGames.length.toLocaleString('id-ID') + ' gim dari ' + total + ' hal. API'
+                : 'Menghubungkan ke API...';
+        el.fetched.textContent  = fetched;
+        el.apiTotal.textContent = total || '--';
+    }
+
+    function showError(msg) {
+        el.errorArea.innerHTML =
+            '<div class="error-notice">' + msg + '</div>';
+    }
+
+    /* ── FIX 2: loop aman — berhenti di totalPages, bukan while < 1000 ── */
+    /* ── FIX 3: batch fetch paralel — tidak ada sleep(50) per halaman   ── */
+    async function startSync() {
+        if (isSyncing) return;
+        isSyncing = true;
+        el.syncStatus.classList.add('active');
+        el.syncText.textContent = 'Sinkronisasi...';
+
+        try {
+            /* Fetch halaman 0 dulu untuk tahu totalPages */
+            const res0 = await fetch(API_BASE + '?page=0&size=' + API_SIZE + '&sort=id,desc');
+            if (!res0.ok) throw new Error('HTTP ' + res0.status);
+            const data0 = await res0.json();
+
+            const items0 = data0._embedded?.publicGameResultList || [];
+            let totalPages = data0.page?.totalPages || 1;
+
+            items0.forEach(g => { if (!seenIds.has(g.id)) { seenIds.add(g.id); allGames.push(g); } });
+            el.total.textContent = allGames.length.toLocaleString('id-ID');
+            setProgress(1, totalPages);
+            applyFilters();
+
+            /* Fetch sisa halaman dalam batch paralel */
+            let fetchedCount = 1;
+            for (let start = 1; start < totalPages; start += BATCH_SIZE) {
+                const batch = [];
+                for (let p = start; p < Math.min(start + BATCH_SIZE, totalPages); p++) {
+                    batch.push(p);
+                }
+
+                const results = await Promise.allSettled(
+                    batch.map(p =>
+                        fetch(API_BASE + '?page=' + p + '&size=' + API_SIZE + '&sort=id,desc')
+                            .then(r => r.ok ? r.json() : null)
+                            .catch(() => null)
+                    )
+                );
+
+                results.forEach(r => {
+                    if (r.status !== 'fulfilled' || !r.value) return;
+                    const items = r.value._embedded?.publicGameResultList || [];
+                    /* FIX: deduplikasi — game yang sama tidak masuk dua kali */
+                    items.forEach(g => {
+                        if (!seenIds.has(g.id)) { seenIds.add(g.id); allGames.push(g); }
+                    });
+                    fetchedCount++;
+                    /* Update totalPages jika API melaporkan angka lebih besar */
+                    const tp = r.value.page?.totalPages;
+                    if (tp && tp > totalPages) totalPages = tp;
+                    el.total.textContent = allGames.length.toLocaleString('id-ID');
+                    setProgress(fetchedCount, totalPages);
+                });
+
+                applyFilters();
+            }
+
+            isSyncing = false;
+            el.syncStatus.classList.remove('active');
+            el.syncText.textContent = 'Data Sinkron ✓';
+            el.total.textContent = allGames.length.toLocaleString('id-ID');
+
+            setTimeout(() => { el.progressArea.style.opacity = '0'; }, 2000);
+            setTimeout(() => { el.progressArea.style.display  = 'none'; }, 2500);
+
+            applyFilters();
+
+        } catch (e) {
+            isSyncing = false;
+            el.syncStatus.classList.remove('active');
+            el.syncText.textContent = 'Gagal';
+            showError(
+                '<strong>Gagal terhubung ke API IGRS.</strong><br>' +
+                'Error: ' + e.message + '<br><br>' +
+                'Kemungkinan CORS diblokir dari domain ini. ' +
+                'Hosting file di server WordPress dan tambahkan PHP proxy, atau minta pengelola IGRS mengaktifkan CORS header.'
+            );
+            el.progressArea.style.display = 'none';
+        }
+    }
+
+    /* ── Filter & render ── */
+    function applyFilters() {
+        let results = [...allGames];
+
+        if (ratingFilter !== 'all') {
+            results = results.filter(g =>
+                g.ratings?.some(r => (r.name || '').trim() === ratingFilter)
+            );
+        }
+
+        if (platformFilter !== 'all') {
+            results = results.filter(g => {
+                const plats = g.platformsName || g.platforms || [];
+                return plats.some(p => {
+                    const name = typeof p === 'object' ? p.name : p;
+                    return (name || '').toLowerCase().includes(platformFilter);
+                });
+            });
+        }
+
+        if (searchQuery) {
+            results = results.filter(g =>
+                (g.name || '').toLowerCase().includes(searchQuery) ||
+                (g.publisherName || '').toLowerCase().includes(searchQuery)
+            );
+        }
+
+        const sort = document.getElementById('sortSelect')?.value || 'id_desc';
+        if (sort === 'name_asc')  results.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        if (sort === 'name_desc') results.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
+        if (sort === 'year_desc') results.sort((a, b) => (b.releaseYear || 0) - (a.releaseYear || 0));
+        if (sort === 'year_asc')  results.sort((a, b) => (a.releaseYear || 0) - (b.releaseYear || 0));
+        if (sort === 'id_desc')   results.sort((a, b) => b.id - a.id);
+
+        filteredGames = results;
+        el.filtered.textContent = filteredGames.length.toLocaleString('id-ID');
+        render();
+    }
+
+    function render() {
+        const start = displayPage * DISPLAY_SIZE;
+        const slice = filteredGames.slice(start, start + DISPLAY_SIZE);
+        const totalDP = Math.ceil(filteredGames.length / DISPLAY_SIZE);
+
+        if (!slice.length) {
+            el.container.innerHTML =
+                '<div style="text-align:center;padding:50px;color:var(--igrs-text-faint);font-size:14px;">' +
+                (allGames.length ? 'Tidak ada gim yang cocok.' : 'Memuat data...') +
+                '</div>';
+            el.pagination.innerHTML = '';
+            return;
+        }
+
+        el.container.innerHTML = '<div class="game-grid">' +
+            slice.map(g => {
+                const rName = g.ratings?.[0]?.name || '';
+                const rc    = ratingClass(rName);
+                const plats = (g.platformsName || g.platforms || [])
+                    .slice(0, 3)
+                    .map(x => '<span class="platform-tag">' + (typeof x === 'object' ? x.name : x).trim() + '</span>')
+                    .join(' ');
+                return '<div class="game-card" onclick="igrsOpenDetail(' + g.id + ')">' +
+                    '<div class="game-header">' +
+                        '<span class="game-title">' + escHtml(g.name) + '</span>' +
+                        '<span class="rating-pill ' + rc + '">' + (rName || 'UR') + '</span>' +
+                    '</div>' +
+                    '<div class="publisher">' + escHtml(g.publisherName || 'Penerbit Anonim') + '</div>' +
+                    '<div style="display:flex;gap:5px;flex-wrap:wrap;">' + (plats || '') + '</div>' +
+                '</div>';
+            }).join('') +
+        '</div>';
+
+        renderPager(totalDP);
+    }
+
+    function renderPager(total) {
+        if (total <= 1) { el.pagination.innerHTML = ''; return; }
+        el.pagination.innerHTML =
+            '<button class="page-btn" onclick="igrsGoP(' + (displayPage - 1) + ')" ' + (displayPage === 0 ? 'disabled' : '') + '>‹ Prev</button>' +
+            '<span class="page-info">' + (displayPage + 1) + ' / ' + total + '</span>' +
+            '<button class="page-btn" onclick="igrsGoP(' + (displayPage + 1) + ')" ' + (displayPage >= total - 1 ? 'disabled' : '') + '>Next ›</button>';
+    }
+
+    /* ── Modal detail ── */
+    /* FIX 4: endpoint /public/games/{id} mungkin tidak ada.
+       Kita ambil data dari cache allGames dulu.
+       Fallback ke fetch individual hanya jika id tidak ada di cache. */
+    window.igrsOpenDetail = async function(id) {
+        el.modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        el.modalBody.innerHTML = loadingSpinner();
+
+        let g = allGames.find(x => x.id === id);
+
+        if (!g) {
+            /* Fallback: coba fetch individual */
+            try {
+                const res = await fetch(API_BASE + '/' + id);
+                if (res.ok) g = await res.json();
+            } catch (_) {}
+        }
+
+        if (!g) {
+            el.modalBody.innerHTML =
+                '<div style="text-align:center;padding:50px;color:var(--igrs-red);font-family:var(--igrs-font-mono);font-size:13px;">' +
+                'Data gim tidak ditemukan.<br><br>' +
+                '<small>Endpoint detail mungkin tidak tersedia di API ini.</small>' +
+                '</div>';
+            return;
+        }
+
+        const rName = g.ratings?.[0]?.name || '';
+        const rDesc = g.ratings?.[0]?.contentId || g.ratings?.[0]?.contentEn || 'Deskripsi klasifikasi tidak tersedia.';
+        const rc    = ratingClass(rName);
+        const bc    = borderClass(rName);
+        const plats = (g.platformsName || g.platforms || [])
+            .map(x => '<span class="platform-tag" style="font-size:11px;padding:4px 10px;">' + (typeof x === 'object' ? x.name : x).trim() + '</span>')
+            .join(' ');
+        const descriptors = (g.descriptors || []);
+
+        el.modalBody.innerHTML =
+            '<div class="modal-header-bar">' +
+                '<h2 style="font-family:var(--igrs-font-display);font-size:clamp(20px,4vw,26px);line-height:1.2;margin:0 0 16px 0;color:var(--igrs-text);padding-right:48px;">' + escHtml(g.name) + '</h2>' +
+                '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">' +
+                    '<span class="rating-pill ' + rc + '" style="font-size:18px;padding:8px 22px;border-radius:10px;font-weight:800;">' + (rName || 'UNRATED') + '</span>' +
+                    '<span style="font-family:var(--igrs-font-mono);font-size:13px;color:var(--igrs-text);background:var(--igrs-bg);border:1px solid var(--igrs-border);padding:8px 16px;border-radius:10px;">Terbit: ' + (g.releaseYear || 'N/A') + '</span>' +
+                '</div>' +
+                '<div style="font-size:14px;color:var(--igrs-text-muted);margin-top:16px;">Penerbit: <strong style="color:var(--igrs-text);">' + escHtml(g.publisherName || 'Tidak diketahui') + '</strong></div>' +
+            '</div>' +
+            '<div class="modal-scroll-area">' +
+                (g.description ? '<div style="margin-bottom:2rem;"><span class="detail-section-label">Sinopsis</span><div class="synopsis-box">' + escHtml(g.description) + '</div></div>' : '') +
+                '<div style="margin-bottom:2rem;"><span class="detail-section-label">Platform</span><div style="display:flex;gap:8px;flex-wrap:wrap;">' + (plats || '<span style="color:var(--igrs-text-faint);font-size:13px;">Tidak tersedia</span>') + '</div></div>' +
+                (descriptors.length ? '<div style="margin-bottom:2rem;"><span class="detail-section-label">Deskriptor Konten</span><div style="display:flex;gap:8px;flex-wrap:wrap;">' + descriptors.map(d => '<span style="font-size:12px;font-family:var(--igrs-font-mono);background:var(--igrs-bg);border:1px solid var(--igrs-border);border-radius:6px;padding:4px 10px;">' + escHtml(d.nameId || d.nameEn) + '</span>').join('') + '</div></div>' : '') +
+                '<div><span class="detail-section-label">Kriteria Klasifikasi IGRS</span><div class="rating-desc-box ' + bc + '"><strong style="display:block;margin-bottom:10px;font-size:14px;">Kategori ' + (rName || 'Unrated') + '</strong>' + escHtml(rDesc) + '</div></div>' +
+                '<div style="margin-top:2.5rem;padding-top:16px;border-top:1px solid var(--igrs-border);font-size:11px;color:var(--igrs-text-faint);font-family:var(--igrs-font-mono);display:flex;justify-content:space-between;">' +
+                    '<span>ID: #' + g.id + '</span><span>IGRS.ID</span>' +
+                '</div>' +
+            '</div>';
+    };
+
+    window.igrsCloseDetail = function(e) {
+        if (e && e.target !== el.modal) return;
+        el.modal.classList.remove('active');
+        document.body.style.overflow = '';
+    };
+
+    window.igrsGoP = function(p) {
+        const total = Math.ceil(filteredGames.length / DISPLAY_SIZE);
+        if (p < 0 || p >= total) return;
+        displayPage = p;
+        render();
+        document.getElementById('igrs-app-container').scrollIntoView({ behavior: 'smooth' });
+    };
+
+    window.igrsOnSearch   = function() { searchQuery = document.getElementById('searchInput').value.toLowerCase(); displayPage = 0; applyFilters(); };
+    window.igrsOnSort     = function() { sortOrder = document.getElementById('sortSelect').value; applyFilters(); };
+    window.igrsOnPlatform = function() { platformFilter = document.getElementById('platformSelect').value; displayPage = 0; applyFilters(); };
+
+    document.querySelectorAll('#ratingChips .chip').forEach(chip => {
+        chip.addEventListener('click', function() {
+            document.querySelectorAll('#ratingChips .chip').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            ratingFilter = this.dataset.rating;
+            displayPage = 0;
+            applyFilters();
+        });
+    });
+
+    function escHtml(str) {
+        return String(str || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function loadingSpinner() {
+        return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;">' +
+            '<div style="width:40px;height:40px;border:4px solid var(--igrs-border);border-top-color:var(--igrs-text);border-radius:50%;animation:igrs-spin 0.8s linear infinite;"></div>' +
+            '<p style="margin-top:15px;font-size:12px;color:var(--igrs-text-faint);font-family:var(--igrs-font-mono);">Memuat detail...</p>' +
+        '</div>';
+    }
+
+    startSync();
+})();
+</script>
+</body>
+</html>
