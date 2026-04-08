@@ -526,25 +526,26 @@
         el.syncText.textContent = 'Sinkronisasi...';
 
         try {
-            /* Fetch halaman 0 dulu untuk tahu totalPages */
-            const res0 = await fetch(API_BASE + '?page=0&size=' + API_SIZE + '&sort=id,desc');
+            /* 1. Ambil Halaman Pertama Tanpa Menebak Size */
+            const res0 = await fetch(API_BASE + '?page=0&sort=id,desc'); 
             if (!res0.ok) throw new Error('HTTP ' + res0.status);
             const data0 = await res0.json();
-            console.log("Struktur API:", data0);
-
+            
+            // DINAMIS: Ambil info langsung dari server
+            const currentSize = data0.page?.size || 20;       
+            let totalPages = data0.page?.totalPages || 1;     
+            const totalElements = data0.page?.totalElements || 0; 
+            
+            console.log(`Menarik ${totalElements} game dari ${totalPages} halaman.`);
+            
+            // Masukkan data awal
             const items0 = data0._embedded?.publicGameResultList || [];
-            let totalPages = data0.page?.totalPages || 1;
-
             items0.forEach(g => { if (!seenIds.has(g.id)) { seenIds.add(g.id); allGames.push(g); } });
+            
+            // Update UI Awal
             el.total.textContent = allGames.length.toLocaleString('id-ID');
             setProgress(1, totalPages);
-            applyFilters();
-
-            // TAMBAHKAN BARIS INI:
-            console.log("Jumlah data masuk ke allGames:", allGames.length); 
             
-            el.total.textContent = allGames.length.toLocaleString('id-ID');
-
             /* Fetch sisa halaman dalam batch paralel */
             let fetchedCount = 1;
             for (let start = 1; start < totalPages; start += BATCH_SIZE) {
@@ -555,7 +556,7 @@
 
                 const results = await Promise.allSettled(
                     batch.map(p =>
-                        fetch(API_BASE + '?page=' + p + '&size=' + API_SIZE + '&sort=id,desc')
+                        fetch(API_BASE + '?page=' + p + '&size=' + currentSize + '&sort=id,desc')
                             .then(r => r.ok ? r.json() : null)
                             .catch(() => null)
                     )
