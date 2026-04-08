@@ -376,7 +376,7 @@
     <div class="metrics-grid">
         <div class="metric-card"><label>Total Gim</label><div class="value" id="mTotal">0</div></div>
         <div class="metric-card"><label>Tersaring</label><div class="value" id="mFiltered">0</div></div>
-        <div class="metric-card"><label>Hal. Dimuat</label><div class="value" id="mFetched">0</div></div>
+        <div class="metric-card"><label>Jml. Penerbit</label><div class="value" id="mPublishers">0</div></div>
         <div class="metric-card"><label>Estimasi API</label><div class="value" id="mApiTotal">--</div></div>
     </div>
 
@@ -445,7 +445,7 @@
     const elements = {
         total: document.getElementById('mTotal'),
         filtered: document.getElementById('mFiltered'),
-        fetched: document.getElementById('mFetched'),
+        publishers: document.getElementById('mPublishers'),
         apiTotal: document.getElementById('mApiTotal'),
         progressFill: document.getElementById('progressFill'),
         progressPct: document.getElementById('progressPct'),
@@ -537,6 +537,20 @@
             return b.id - a.id;
         });
 
+        // --- TAMBAHKAN LOGIKA INI SEBELUM RENDER ---
+        // Kita ambil nama publisher unik dari hasil filter
+        const uniquePublishers = new Set(
+            results
+                .map(g => (g.publisherName || 'Tidak diketahui').trim())
+                .filter(name => name !== '')
+        );
+        
+        // Update angka di box JML Penerbit
+        if (el.publishers) {
+            el.publishers.textContent = uniquePublishers.size.toLocaleString('id-ID');
+        }
+        // ------------------------------------------
+        
         filteredGames = results;
         elements.filtered.innerText = filteredGames.length.toLocaleString('id-ID');
         render();
